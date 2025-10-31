@@ -24,7 +24,7 @@ int main() {
     Data* queue = new Data[n];
 
     cout << endl;
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) { 
         cout << "Pasien: " << i + 1 << endl;
 
         cout << "Nama hewan: ";
@@ -43,7 +43,7 @@ int main() {
         getchar();
     }
 
-    // Logika
+    // Sorting
     for (int i=0; i < n - 1; i++) {
         for (int j=0; j < n - i - 1; j++) {
             if (queue[j].level < queue[j + 1].level) {

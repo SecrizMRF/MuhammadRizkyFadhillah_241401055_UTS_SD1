@@ -1,54 +1,63 @@
 #include <iostream>
 #include <vector>
 #include <queue>
-#include <stack>
-#include <algorithm>
 using namespace std;
 
 class Graph {
 private:
     int numVertices;
-    vector<vector<int>> adjMatrix; // matriks bobot jarak
+    vector<vector<int>> adjMatrix;
 
 public:
     Graph(int V) {
         numVertices = V;
-        adjMatrix.resize(numVertices, vector<int>(numVertices, 0));
+        adjMatrix.resize(V, vector<int>(V, 0));
     }
 
     void addEdge(int i, int j, int w) {
-        i--; j--; // biar sesuai urutan A=1, B=2, dst
-        if (i >= 0 && i < numVertices && j >= 0 && j < numVertices) {
-            adjMatrix[i][j] = w;
-            adjMatrix[j][i] = w;
-        } else {
-            cout << "Indeks simpul tidak valid.\n";
-        }
+        i--;
+        j--;
+        adjMatrix[i][j] = w;
+        adjMatrix[j][i] = w;
     }
 
     void printAdjMatrix() {
         cout << "Adjacency Matrix (berisi jarak antar kota):\n";
         for (int i = 0; i < numVertices; i++) {
-            for (int j = 0; j < numVertices; j++) {
+            for (int j = 0; j < numVertices; j++)
                 cout << adjMatrix[i][j] << " ";
-            }
             cout << endl;
         }
     }
 
-    // ---------- FUNGSI DFS ----------
+    // ---------- DFS dengan prioritas jarak terkecil ----------
     void dfsUtil(int current, vector<bool>& visited, string kota[]) {
         visited[current] = true;
         cout << kota[current];
 
-        // Cek apakah masih ada kota berikutnya
-        bool first = true;
+        // Simpan semua tetangga yang terhubung
+        vector<pair<int, int>> tetangga; // (jarak, index kota)
         for (int i = 0; i < numVertices; i++) {
             if (adjMatrix[current][i] != 0 && !visited[i]) {
-                cout << " -> ";
-                dfsUtil(i, visited, kota);
-                first = false;
+                tetangga.push_back({adjMatrix[current][i], i});
             }
+        }
+
+        // Urutkan manual berdasarkan bobot (jarak) terkecil
+        for (int i = 0; i < (int)tetangga.size(); i++) {
+            for (int j = i + 1; j < (int)tetangga.size(); j++) {
+                if (tetangga[j].first < tetangga[i].first) {
+                    auto temp = tetangga[i];
+                    tetangga[i] = tetangga[j];
+                    tetangga[j] = temp;
+                }
+            }
+        }
+
+        // Rekursif ke kota berikutnya (berdasarkan jarak kecil)
+        for (int k = 0; k < (int)tetangga.size(); k++) {
+            cout << " -> ";
+            dfsUtil(tetangga[k].second, visited, kota);
         }
     }
 
@@ -59,6 +68,7 @@ public:
         cout << endl << endl;
     }
 
+    // ---------- Fungsi bantu: reverse manual ----------
     void reverseVector(vector<int>& vec) {
         int left = 0, right = vec.size() - 1;
         while (left < right) {
@@ -70,48 +80,45 @@ public:
         }
     }
 
-
-    // ---------- FUNGSI BFS ----------
-    void bfsShortestPath(int startVertex, int endVertex, string kota[]) {
-        vector<bool> visited(numVertices, false);
+    // ---------- BFS berbobot ----------
+    void bfsWeighted(int startVertex, int endVertex, string kota[]) {
+        vector<int> jarak(numVertices, 9999);
         vector<int> parent(numVertices, -1);
         queue<int> q;
 
-        visited[startVertex] = true;
+        jarak[startVertex] = 0;
         q.push(startVertex);
 
         while (!q.empty()) {
-            int current = q.front();
-            q.pop();
+            int u = q.front(); q.pop();
 
-            if (current == endVertex) break;
-
-            for (int i = 0; i < numVertices; i++) {
-                if (adjMatrix[current][i] != 0 && !visited[i]) {
-                    visited[i] = true;
-                    parent[i] = current;
-                    q.push(i);
+            for (int v = 0; v < numVertices; v++) {
+                if (adjMatrix[u][v] != 0) {
+                    int newDist = jarak[u] + adjMatrix[u][v];
+                    if (newDist < jarak[v]) {
+                        jarak[v] = newDist;
+                        parent[v] = u;
+                        q.push(v);
+                    }
                 }
             }
         }
 
-        // Rekonstruksi jalur dari akhir ke awal
+        // --- Rekonstruksi jalur ---
         vector<int> path;
         for (int v = endVertex; v != -1; v = parent[v])
             path.push_back(v);
-
         reverseVector(path);
 
+        // --- Output utama ---
         cout << "JALUR TERCEPAT PARUL (BFS):\n";
         int totalJarak = 0;
         for (int i = 0; i < (int)path.size(); i++) {
             cout << kota[path[i]];
-
-            // Cetak jarak antar kota
             if (i < (int)path.size() - 1) {
-                int jarak = adjMatrix[path[i]][path[i+1]];
-                totalJarak += jarak;
-                cout << " (" << jarak << "m)\n";
+                int segmen = adjMatrix[path[i]][path[i + 1]];
+                totalJarak += segmen;
+                cout << " (" << segmen << "m)\n";
             }
         }
 
@@ -125,12 +132,11 @@ public:
     }
 };
 
+// ---------- MAIN ----------
 int main() {
-    Graph g(5); // Ada 5 kota: A, B, C, D, E
-
+    Graph g(5);
     string kota[5] = {"A", "B", "C", "D", "E"};
 
-    // Edge sesuai soal (A-E dengan bobot)
     g.addEdge(1, 2, 5); // A-B (5)
     g.addEdge(1, 3, 2); // A-C (2)
     g.addEdge(2, 4, 4); // B-D (4)
@@ -141,11 +147,11 @@ int main() {
     g.printAdjMatrix();
     cout << endl;
 
-    // Jalankan DFS dari A (index 0)
+    // DFS
     g.dfs(0, kota);
 
-    // Jalankan BFS untuk mencari rute tercepat dari A ke E
-    g.bfsShortestPath(0, 4, kota);
+    // BFS berbobot
+    g.bfsWeighted(0, 4, kota);
 
     return 0;
 }
