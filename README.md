@@ -32,7 +32,7 @@ Fork repository ini dan rename menjadi NAMA_NIM_UTS_SD1
 
 Silahkan masukkan link gdrive (untuk video) dalam kotak berikut
 
-      [link]
+      [https://drive.google.com/file/d/1FXA0T6e6Sh8jv-KvK0y-ihbGsngzbnZT/view?usp=sharing]
       
 
 # ⚠️ _JANGAN COBA-COBA UNTUK COPY PASTE CODE DARI TEMAN ATAUPUN YANG ADA DI GOOGLE. MOHON KERJAKAN MASING-MASING._ ⚠️
